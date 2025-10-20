@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ms-MY">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kemahiran Pemulihan: Operasi Tolak</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{box-sizing:border-box}
+    .drag-item{cursor:grab}
+    .drag-item:active{cursor:grabbing}
+    .drop-zone{min-height:80px;border:2px dashed #cbd5e1;transition:.3s all}
+    .drop-zone.drag-over{border-color:#3b82f6;background:#dbeafe}
+    .number-line{background:linear-gradient(to right,#f1f5f9 0%,#e2e8f0 100%)}
+    .number-marker{transition:.3s all}
+    .number-marker:hover{transform:scale(1.1)}
+    .coloring-item{cursor:pointer;transition:.3s all}
+    .coloring-item:hover{transform:scale(1.05)}
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+  <div class="container mx-auto p-4 max-w-6xl">
+    <!-- Header -->
+    <header class="text-center mb-6">
+      <h1 class="text-4xl font-bold text-purple-800 mb-2">🧮 Kemahiran Pemulihan: Operasi Tolak</h1>
+      <p class="text-lg text-gray-600">Untuk murid 5–9 tahun • Pembelajaran interaktif tanpa markah</p>
+    </header>
+
+    <!-- Info Bar -->
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6 rounded-lg shadow-md">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <span class="text-2xl mr-3">ℹ️</span>
+          <p id="info-text" class="text-lg font-medium text-yellow-800">Klik mana-mana elemen untuk belajar.</p>
+        </div>
+        <button id="speak-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-xl transition-colors">🔊</button>
+      </div>
+    </div>
+
+    <!-- Activity Card -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6 min-h-96">
+      <div id="activity-content" class="text-center">
+        <div class="text-6xl mb-4">🎯</div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Pilih Aktiviti untuk Mula Belajar</h2>
+        <p class="text-lg text-gray-600">Klik butang aktiviti di bawah untuk bermula!</p>
+      </div>
+    </div>
+
+    <!-- Activity Buttons (nama pendek) -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+      <button onclick="startActivity(1)" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-bold text-lg">➖ Simbol</button>
+      <button onclick="startActivity(2)" class="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-bold text-lg">🎨 Warna Tolak</button>
+      <button onclick="startActivity(3)" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-lg font-bold text-lg">🧱 Bina Ayat</button>
+      <button onclick="startActivity(4)" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg font-bold text-lg">📏 Garis Nombor</button>
+      <button onclick="startActivity(5)" class="bg-pink-500 hover:bg-pink-600 text-white px-4 py-3 rounded-lg font-bold text-lg">🔗 Padanan Harian</button>
+    </div>
+
+    <!-- Control Buttons -->
+    <div class="flex justify-center gap-4 mb-10">
+      <button onclick="clearActivity()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-bold">🧹 Bersih</button>
+      <button onclick="nextActivity()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold">➡️ Seterusnya</button>
+    </div>
+  </div>
+
+  <script>
+    let currentActivity = 0;
+    let isUnlocked = false;
+
+    function unlockAudio(){
+      if(!isUnlocked){ speechSynthesis.speak(new SpeechSynthesisUtterance('')); isUnlocked=true; }
+    }
+    function setInfo(t){ document.getElementById('info-text').textContent=t; }
+    function speak(t){
+      if(!isUnlocked) return;
+      speechSynthesis.cancel();
+      setTimeout(()=>{
+        const u=new SpeechSynthesisUtterance(t);
+        u.lang='ms-MY'; u.rate=.85; u.pitch=1.05;
+        const v=speechSynthesis.getVoices().find(v=>v.lang.includes('ms')||v.lang.includes('MY'));
+        if(v) u.voice=v;
+        speechSynthesis.speak(u);
+      },80);
+    }
+    document.getElementById('speak-btn').addEventListener('click',()=>{unlockAudio();speak(document.getElementById('info-text').textContent);});
+    document.addEventListener('click',unlockAudio,{once:true});
+
+    function startActivity(num){
+      currentActivity=num;
+      const content=document.getElementById('activity-content');
+      if(num===1) activity1_Simbol(content);
+      if(num===2) activity2_Warna(content);
+      if(num===3) activity3_BinaAyat(content);
+      if(num===4) activity4_NumberLine(content);
+      if(num===5) activity5_Padanan(content);
+    }
+    function clearActivity(){
+      currentActivity=0;
+      document.getElementById('activity-content').innerHTML=`
+        <div class="text-6xl mb-4">🎯</div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Pilih Aktiviti untuk Mula Belajar</h2>
+        <p class="text-lg text-gray-600">Klik butang aktiviti di bawah untuk bermula!</p>`;
+      setInfo('Klik mana-mana elemen untuk belajar.');
+    }
+    function nextActivity(){ startActivity(currentActivity<5?currentActivity+1:1); }
+
+    /* ===== Simbol (penerangan, bukan soalan) ===== */
+    function activity1_Simbol(content){
+      setInfo('Klik simbol untuk mendengar maksudnya.');
+      content.innerHTML=`
+        <h2 class="text-3xl font-bold text-blue-800 mb-6">➖ Kenali Simbol Tolak & Sama Dengan</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-blue-50 p-6 rounded-xl">
+            <h3 class="text-xl font-bold mb-4">Simbol Tolak</h3>
+            <button onclick="learnSymbol('tolak')" class="text-8xl hover:scale-110 transition-transform bg-white p-4 rounded-lg shadow-md">−</button>
+            <p class="mt-4 text-lg">“Tolak” bermaksud ambil/kurangkan.</p>
+          </div>
+          <div class="bg-green-50 p-6 rounded-xl">
+            <h3 class="text-xl font-bold mb-4">Simbol Sama Dengan</h3>
+            <button onclick="learnSymbol('sama')" class="text-8xl hover:scale-110 transition-transform bg-white p-4 rounded-lg shadow-md">=</button>
+            <p class="mt-4 text-lg">“Sama dengan” bermaksud hasil/jawapan.</p>
+          </div>
+        </div>
+        <div class="mt-6 bg-yellow-50 p-4 rounded-lg">
+          <h3 class="text-xl font-bold mb-2">Contoh Ayat Matematik</h3>
+          <div class="text-4xl font-bold text-center">9 − 3 = 6</div>
+        </div>`;
+    }
+    function learnSymbol(type){
+      if(type==='tolak'){ setInfo('Simbol tolak (−) bermaksud kurangkan atau ambil.'); speak('Simbol tolak bermaksud kurangkan atau ambil.'); }
+      else{ setInfo('Simbol sama dengan (=) bermaksud hasilnya ialah.'); speak('Simbol sama dengan bermaksud hasilnya ialah.'); }
+    }
+
+    /* ===== Warna Tolak (auto maklum balas, tiada “Semak”) ===== */
+    let lockColoring=false;
+    function activity2_Warna(content){
+      lockColoring=false;
+      setInfo('Warnakan 3 epal yang “diambil” (tolak).');
+      content.innerHTML=`
+        <h2 class="text-3xl font-bold text-green-800 mb-6">🎨 Warnakan untuk Menunjukkan Tolak</h2>
+        <div class="bg-green-50 p-6 rounded-xl">
+          <p class="text-xl mb-4">Ada 8 epal. Farid makan 3 epal. Klik 3 epal untuk menandakan ia diambil.</p>
+          <div class="grid grid-cols-4 gap-4 mb-6" id="apples-grid">
+            ${Array(8).fill(0).map((_,i)=>`
+              <div class="coloring-item text-6xl text-center p-2" onclick="toggleApple(${i})" data-colored="false">🍎</div>
+            `).join('')}
+          </div>
+          <div class="text-center">
+            <button onclick="resetColoring()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg text-xl font-bold">Mula Semula</button>
+          </div>
+        </div>`;
+    }
+    function toggleApple(i){
+      if(lockColoring) return;
+      const apples=[...document.querySelectorAll('.coloring-item')];
+      const el=apples[i];
+      const colored=el.dataset.colored==='true';
+      if(colored){ el.innerHTML='🍎'; el.dataset.colored='false'; el.classList.remove('opacity-50'); }
+      else{
+        const count=apples.filter(a=>a.dataset.colored==='true').length;
+        if(count>=3){ setInfo('Sudah cukup 3 epal. Tekan “Mula Semula” untuk cuba lagi.'); return; }
+        el.innerHTML='🍏'; el.dataset.colored='true'; el.classList.add('opacity-50');
+      }
+      const now=apples.filter(a=>a.dataset.colored==='true').length;
+      if(now<3){ setInfo(`Bagus! Tandakan lagi ${3-now} epal.`); }
+      if(now===3){
+        lockColoring=true;
+        setInfo('Hebat! 8 − 3 = 5. Tinggal 5 epal merah.');
+        speak('Lapan tolak tiga sama dengan lima. Tinggal lima epal.');
+      }
+    }
+    function resetColoring(){
+      lockColoring=false;
+      document.querySelectorAll('.coloring-item').forEach(a=>{ a.innerHTML='🍎'; a.dataset.colored='false'; a.classList.remove('opacity-50'); });
+      setInfo('Warnakan 3 epal yang “diambil”.');
+    }
+
+    /* ===== Bina Ayat (auto semak bila lengkap) ===== */
+    function activity3_BinaAyat(content){
+      setInfo('Seret nombor & simbol untuk membina ayat: 7 − 2 = 5.');
+      content.innerHTML=`
+        <h2 class="text-3xl font-bold text-purple-800 mb-6">🧱 Bina Ayat Matematik</h2>
+        <div class="bg-purple-50 p-6 rounded-xl">
+          <p class="text-lg mb-4">Seret dan lepaskan ke kotak.</p>
+          <div class="mb-6">
+            <h3 class="text-lg font-bold mb-2">Pilihan</h3>
+            <div class="flex flex-wrap gap-3" id="drag-items">
+              ${['7','−','2','=','5','3'].map(v=>`
+                <div class="drag-item bg-white border-2 border-gray-300 px-4 py-2 rounded-lg text-2xl font-bold cursor-grab" draggable="true" data-value="${v}">${v}</div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-lg font-bold mb-2">Ayat Matematik</h3>
+            <div class="flex gap-2 justify-center">
+              ${[0,1,2,3,4].map(i=>`
+                <div class="drop-zone bg-gray-100 border-2 border-dashed border-gray-300 w-16 h-16 flex items-center justify-center text-xl font-bold rounded-lg" data-position="${i}"></div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="text-center">
+            <button onclick="resetDragDrop()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg text-xl font-bold">Mula Semula</button>
+          </div>
+        </div>`;
+      setupDragDrop();
+    }
+    function setupDragDrop(){
+      const drags=document.querySelectorAll('.drag-item');
+      const zones=document.querySelectorAll('.drop-zone');
+      drags.forEach(it=>{
+        it.addEventListener('dragstart',e=>{
+          e.dataTransfer.setData('text/plain', e.target.dataset.value);
+        });
+      });
+      zones.forEach(z=>{
+        z.addEventListener('dragover',e=>{e.preventDefault(); z.classList.add('drag-over');});
+        z.addEventListener('dragleave',()=>z.classList.remove('drag-over'));
+        z.addEventListener('drop',e=>{
+          e.preventDefault(); z.classList.remove('drag-over');
+          const v=e.dataTransfer.getData('text/plain'); z.textContent=v; z.classList.add('bg-blue-100','border-blue-300');
+          autoCheckSentence();
+        });
+      });
+    }
+    function autoCheckSentence(){
+      const vals=[...document.querySelectorAll('.drop-zone')].map(z=>z.textContent||'');
+      if(vals.every(v=>v!==''))
+      {
+        const ok=['7','−','2','=','5'];
+        if(JSON.stringify(vals)===JSON.stringify(ok)){
+          setInfo('Cantik! 7 − 2 = 5 dibina dengan betul.');
+          speak('Tujuh tolak dua sama dengan lima. Bagus!');
+        }else{
+          setInfo('Lihat semula susunan. Petunjuk: 7 − 2 = 5');
+          speak('Cuba susun semula menjadi tujuh tolak dua sama dengan lima.');
+        }
+      }
+    }
+    function resetDragDrop(){
+      document.querySelectorAll('.drop-zone').forEach(z=>{z.textContent=''; z.classList.remove('bg-blue-100','border-blue-300');});
+      setInfo('Seret nombor & simbol untuk membina ayat: 7 − 2 = 5.');
+    }
+
+    /* ===== Garis Nombor ===== */
+    let numberLineState={current:null,steps:0,target:4};
+    function activity4_NumberLine(content){
+      setInfo('Klik 6 untuk mula, kemudian bergerak ke kiri 4 langkah.');
+      content.innerHTML=`
+        <h2 class="text-3xl font-bold text-orange-800 mb-6">📏 Garis Nombor</h2>
+        <div class="bg-orange-50 p-6 rounded-xl">
+          <p class="text-xl mb-4">Selesaikan 6 − 4 dengan garis nombor.</p>
+          <p class="text-lg mb-6 text-gray-600">Mula dari 6, klik nombor di sebelah kiri.</p>
+          <div class="number-line bg-white p-6 rounded-lg shadow-md mb-6">
+            <div class="flex justify-between items-center">
+              ${Array(11).fill(0).map((_,i)=>`
+                <div class="text-center">
+                  <div class="number-marker w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold cursor-pointer hover:bg-blue-600" onclick="selectNumber(${i})">${i}</div>
+                  <div class="w-1 h-6 bg-gray-400 mx-auto mt-2"></div>
+                </div>`).join('')}
+            </div>
+          </div>
+          <div class="text-center mb-4">
+            <p class="text-lg">Langkah: <span id="steps-display">Klik 6 untuk mula</span></p>
+            <p class="text-lg">Jawapan: <span id="answer-display">?</span></p>
+          </div>
+          <div class="text-center">
+            <button onclick="resetNumberLine()" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg text-xl font-bold">Mula Semula</button>
+          </div>
+        </div>`;
+      numberLineState={current:null,steps:0,target:4};
+    }
+    function selectNumber(num){
+      const m=document.querySelectorAll('.number-marker');
+      if(numberLineState.current===null){
+        if(num===6){ numberLineState.current=6; m[6].classList.add('bg-green-500'); setInfo('Bagus! Sekarang bergerak ke kiri 4 langkah.'); document.getElementById('steps-display').textContent='Baki 4 langkah.'; }
+        else setInfo('Mula dari nombor 6 dahulu.');
+        return;
+      }
+      const diff=numberLineState.current-num;
+      if(diff>0 && diff<=numberLineState.target-numberLineState.steps){
+        m[numberLineState.current].classList.remove('bg-green-500');
+        m[num].classList.add('bg-green-500');
+        numberLineState.steps+=diff; numberLineState.current=num;
+        const rem=numberLineState.target-numberLineState.steps;
+        if(rem===0){ document.getElementById('steps-display').textContent='Selesai! 4 langkah ke kiri.'; document.getElementById('answer-display').textContent=num; setInfo(`Hebat! 6 − 4 = ${num}.`); speak(`Enam tolak empat sama dengan ${num}.`); }
+        else{ document.getElementById('steps-display').textContent=`Baki ${rem} langkah.`; }
+      }else{
+        setInfo('Gerak ke kiri sahaja dan ikut bilangan langkah yang diperlukan.');
+      }
+    }
+    function resetNumberLine(){
+      document.querySelectorAll('.number-marker').forEach(x=>{x.classList.remove('bg-green-500'); x.classList.add('bg-blue-500');});
+      numberLineState={current:null,steps:0,target:4};
+      document.getElementById('steps-display').textContent='Klik 6 untuk mula';
+      document.getElementById('answer-display').textContent='?';
+      setInfo('Klik 6 untuk mula, kemudian bergerak ke kiri 4 langkah.');
+    }
+
+    /* ===== Padanan Harian (eksplorasi, tanpa markah) ===== */
+    let matchingState={selected:null,pairs:[],correctPairs:[[0,0],[1,2],[2,1]]};
+    function activity5_Padanan(content){
+      matchingState={selected:null,pairs:[],correctPairs:[[0,0],[1,2],[2,1]]};
+      setInfo('Klik masalah dan jawapan yang sepadan untuk belajar.');
+      content.innerHTML=`
+        <h2 class="text-3xl font-bold text-pink-800 mb-6">🔗 Padanan Masalah Harian</h2>
+        <div class="bg-pink-50 p-6 rounded-xl">
+          <p class="text-xl mb-6">Padankan setiap masalah dengan jawapan yang sesuai.</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-lg font-bold mb-4 text-pink-700">Masalah</h3>
+              <div class="space-y-3">
+                <div class="matching-item bg-white p-4 rounded-lg shadow-md cursor-pointer border-2 border-transparent hover:border-pink-300" onclick="selectItem('problem',0)" data-type="problem" data-id="0">🍪 Ada 10 biskut. Adik makan 3. Berapa tinggal?</div>
+                <div class="matching-item bg-white p-4 rounded-lg shadow-md cursor-pointer border-2 border-transparent hover:border-pink-300" onclick="selectItem('problem',1)" data-type="problem" data-id="1">🐱 Ada 8 kucing. 5 pergi. Berapa tinggal?</div>
+                <div class="matching-item bg-white p-4 rounded-lg shadow-md cursor-pointer border-2 border-transparent hover:border-pink-300" onclick="selectItem('problem',2)" data-type="problem" data-id="2">🚗 Ada 12 kereta. 7 pergi. Berapa tinggal?</div>
+              </div>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold mb-4 text-pink-700">Jawapan</h3>
+              <div class="space-y-3">
+                <div class="matching-item bg-white p-4 rounded-lg shadow-md cursor-pointer border-2 border-transparent hover:border-pink-300 text-center font-bold" onclick="selectItem('answer',0)" data-type="answer" data-id="0">10 − 3 = 7</div>
+                <div class="matching-item bg-white p-4 rounded-lg shadow-md cursor-pointer border-2 border-transparent hover:border-pink-300 text-center font-bold" onclick="selectItem('answer',1)" data-type="answer" data-id="1">12 − 7 = 5</div>
+                <div class="matching-item bg-white p-4 rounded-lg shadow-md cursor-pointer border-2 border-transparent hover:border-pink-300 text-center font-bold" onclick="selectItem('answer',2)" data-type="answer" data-id="2">8 − 5 = 3</div>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between mt-6">
+            <div class="text-lg">Kemajuan: <span id="progress-text">0</span> / 3 pasangan</div>
+            <button onclick="resetMatching()" class="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-lg text-xl font-bold">Mula Semula</button>
+          </div>
+        </div>`;
+    }
+    function selectItem(type,id){
+      const el=document.querySelector(`[data-type="${type}"][data-id="${id}"]`);
+      if(matchingState.selected===null){
+        matchingState.selected={type,id,el};
+        el.classList.add('border-pink-500','bg-pink-100');
+        setInfo('Sekarang pilih pasangannya.');
+        return;
+      }
+      if(matchingState.selected.type===type){
+        matchingState.selected.el.classList.remove('border-pink-500','bg-pink-100');
+        matchingState.selected={type,id,el};
+        el.classList.add('border-pink-500','bg-pink-100');
+        return;
+      }
+      const problemId = type==='problem'? id : matchingState.selected.id;
+      const answerId  = type==='answer' ? id : matchingState.selected.id;
+      const ok = matchingState.correctPairs.some(p=>p[0]===problemId && p[1]===answerId);
+      if(ok){
+        el.classList.add('border-green-500','bg-green-100');
+        matchingState.selected.el.classList.remove('border-pink-500','bg-pink-100');
+        matchingState.selected.el.classList.add('border-green-500','bg-green-100');
+        matchingState.pairs.push([problemId,answerId]);
+        document.getElementById('progress-text').textContent=matchingState.pairs.length;
+        setInfo('Bagus! Teruskan pasangan yang lain.');
+        if(matchingState.pairs.length===3){ speak('Hebat! Semua pasangan lengkap.'); setInfo('Hebat! Semua pasangan lengkap.'); }
+      }else{
+        // maklum balas lembut
+        el.classList.add('border-yellow-400','bg-yellow-100');
+        matchingState.selected.el.classList.remove('border-pink-500','bg-pink-100');
+        setTimeout(()=>{ el.classList.remove('border-yellow-400','bg-yellow-100'); },700);
+        setInfo('Belum sepadan. Cuba gabung dengan jawapan lain.');
+      }
+      matchingState.selected=null;
+    }
+    function resetMatching(){
+      document.querySelectorAll('.matching-item').forEach(x=>x.className='matching-item bg-white p-4 rounded-lg shadow-md cursor-pointer border-2 border-transparent hover:border-pink-300'+(x.dataset.type==='answer'?' text-center font-bold':''));
+      document.getElementById('progress-text').textContent='0';
+      matchingState={selected:null,pairs:[],correctPairs:[[0,0],[1,2],[2,1]]};
+      setInfo('Klik masalah dan jawapan yang sepadan untuk belajar.');
+    }
+
+    // Init
+    window.addEventListener('load', ()=> setInfo('Klik mana-mana elemen untuk belajar.'));
+  </script>
+</body>
+</html>
